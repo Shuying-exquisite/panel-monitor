@@ -1,0 +1,25 @@
+{
+  "listen": { "port": 8765, "auto_open": true },
+  "interval": 30,
+  "alert_sound": true,
+  "servers": [
+    {
+      "id": "example-web",
+      "name": "我的网站",
+      "group": "示例分组",
+      "url": "http://192.168.1.10:5700",
+      "mode": "http",
+      "timeout": 3,
+      "note": "换成你自己的地址"
+    }
+  ],
+  "status_servers": [
+    {
+      "id": "example-agent",
+      "name": "我的服务器",
+      "type": "agent",
+      "base": "http://192.168.1.10:9100",
+      "key": ""
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+# 运行时生成，含用户自己的配置/密钥，不入库
+data/
+servers.json
+monitor_data.json
+*.log
+
+__pycache__/
+*.pyc
+.DS_Store
+
+# PyInstaller 产物
+build/
+dist/
+*.exe

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线状态管理 · Web监控 &amp; 管理</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H6a4 4 0 0 1-.6-7.95A6 6 0 0 1 17 9.5a4.5 4.5 0 0 1 .5 9.5Z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M9 21v-7h6v7"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.09A1.7 1.7 0 0 0 21 10h.09a2 2 0 1 1 0 4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-7.6-4.2"/><path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 7.6 4.2"/><path d="M21 3v5h-5M3 21v-5h5"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5Z"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-grip" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16"/><path d="M9.6 5.8A10.7 10.7 0 0 1 12 5.5c6.4 0 10 6.5 10 6.5a17 17 0 0 1-3.2 3.8M6.4 7.3A17.4 17.4 0 0 0 2 12s3.6 6.5 10 6.5a10.6 10.6 0 0 0 4-.75"/><path d="M10.2 10.2a2.6 2.6 0 0 0 3.6 3.6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
+  <symbol id="i-fan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M12 10c0-4 3-6 6-7-2 3-3 5-6 6Z"/><path d="M14 12c4 0 6 3 7 6-3-2-5-3-6-6Z"/><path d="M12 14c0 4-3 6-6 7 2-3 3-5 6-6Z"/><path d="M10 12c-4 0-6-3-7-6 3 2 5 3 6 6Z"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/></symbol>
+</svg>
+
+<div class="shell">
+  <!-- ================= 侧边栏 ================= -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo"><svg><use href="#i-cloud"/></svg></div>
+      <div class="sb-name">在线状态管理</div>
+      <div class="sb-sub">Web监控 &amp; 管理</div>
+    </div>
+    <nav class="sb-nav" id="nav">
+      <button class="nav-item active" data-view="overview"><svg><use href="#i-home"/></svg><span>总览</span></button>
+      <button class="nav-item" data-view="sites"><svg><use href="#i-globe"/></svg><span>网站管理</span></button>
+      <button class="nav-item" data-view="monitor"><svg><use href="#i-activity"/></svg><span>状态监控</span></button>
+      <button class="nav-item" data-view="system"><svg><use href="#i-server"/></svg><span>服务器状态</span></button>
+      <button class="nav-item" data-view="logs"><svg><use href="#i-file"/></svg><span>日志记录</span></button>
+      <button class="nav-item" data-view="settings"><svg><use href="#i-settings"/></svg><span>系统设置</span></button>
+      <button class="nav-item" data-view="about"><svg><use href="#i-info"/></svg><span>关于我们</span></button>
+    </nav>
+    <div class="sb-wave">
+      <svg viewBox="0 0 160 90" preserveAspectRatio="none"><path d="M0 55c28-18 48 12 78 2s48-30 82-14v47H0Z" fill="rgba(255,255,255,.07)"/><path d="M0 68c30-16 52 8 80 0s50-22 80-8v30H0Z" fill="rgba(255,255,255,.09)"/></svg>
+    </div>
+  </aside>
+
+  <!-- ================= 主区域 ================= -->
+  <div class="main">
+    <header class="topbar">
+      <div class="sys-status"><i></i><span id="sys-text">系统运行正常</span></div>
+      <div class="top-right">
+        <button class="bell" id="btn-bell" title="查看告警日志"><svg><use href="#i-bell"/></svg><span class="bell-badge" id="bell-badge" style="display:none">0</span></button>
+        <div class="admin"><span class="avatar">管</span><span>管理员</span><svg class="chev"><use href="#i-chev"/></svg></div>
+        <button class="logout-btn" id="btn-logout" style="display:none">退出</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ---------- 总览 ---------- -->
+      <section class="view" id="view-overview">
+        <div class="dash">
+          <div class="col-left">
+            <div class="stat-cards">
+              <div class="stat-card sc-blue"><div class="sc-icon"><svg><use href="#i-globe"/></svg></div><div class="sc-label">总网站数</div><div class="sc-value" id="s-total">0</div></div>
+              <div class="stat-card sc-green"><div class="sc-icon"><svg><use href="#i-shield"/></svg></div><div class="sc-label">在线网站</div><div class="sc-value" id="s-online">0</div></div>
+              <div class="stat-card sc-orange"><div class="sc-icon"><svg><use href="#i-alert"/></svg></div><div class="sc-label">离线网站</div><div class="sc-value" id="s-offline">0</div></div>
+              <div class="stat-card sc-purple"><div class="sc-icon"><svg><use href="#i-bolt"/></svg></div><div class="sc-label">在线率</div><div class="sc-value" id="s-rate">0%</div></div>
+            </div>
+
+            <div class="card trend-card">
+              <div class="card-head">
+                <h3><span class="head-bar"></span>状态趋势</h3>
+                <select id="trend-range" class="mini-select">
+                  <option value="7d">近7天</option><option value="30d">近30天</option>
+                  <option value="1d">近1天</option><option value="1h">近1小时</option>
+                </select>
+              </div>
+              <div class="legend"><span><i style="background:var(--green)"></i>在线</span><span><i style="background:var(--red)"></i>离线</span><span><i style="background:var(--blue)"></i>总计</span></div>
+              <div class="chart-host" id="chart-trend"></div>
+              <div class="chart-note" id="trend-note"></div>
+            </div>
+
+            <div class="card list-card">
+              <div class="card-head">
+                <h3><span class="head-bar blue"></span>网站列表</h3>
+                <div class="list-tools">
+                  <div class="search"><svg><use href="#i-search"/></svg><input id="search" placeholder="搜索网站名称..." autocomplete="off"></div>
+                  <select id="filter-state" class="mini-select"><option value="all">全部状态</option><option value="online">在线</option><option value="offline">离线</option><option value="warn">异常</option></select>
+                  <button class="eye-btn" data-eye="1" title="切换网址显示"><svg><use href="#i-eye-off"/></svg><span>网址已隐藏</span></button>
+                </div>
+              </div>
+              <div id="table-overview"></div>
+              <div class="table-foot"><span id="count-overview">共 0 条记录</span><div class="pager" id="pager-overview"></div></div>
+            </div>
+          </div>
+
+          <div class="col-right">
+            <div class="card overview-card">
+              <div class="card-head"><h3><span class="head-bar"></span>网站状态概览</h3><span class="head-hint">近7天</span></div>
+              <div class="donut-row">
+                <div class="donut" id="donut"></div>
+                <div class="donut-legend">
+                  <div><i style="background:var(--green)"></i><span>在线</span><b id="d-online">0</b></div>
+                  <div><i style="background:#d8e2f0"></i><span>离线</span><b id="d-offline">0</b></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kpi-row">
+              <div class="kpi"><div class="kpi-icon" style="color:var(--blue);background:#e8f2ff"><svg><use href="#i-bolt"/></svg></div><div class="kpi-label">平均响应时间</div><div class="kpi-value" id="k-avg">—</div></div>
+              <div class="kpi"><div class="kpi-icon" style="color:var(--green);background:#e5f8ef"><svg><use href="#i-clock"/></svg></div><div class="kpi-label">最长在线时间</div><div class="kpi-value" id="k-long">—</div></div>
+              <div class="kpi"><div class="kpi-icon" style="color:var(--orange);background:#fff3df"><svg><use href="#i-alert"/></svg></div><div class="kpi-label">最近离线</div><div class="kpi-value" id="k-last">—</div></div>
+            </div>
+
+            <div class="card quick-card">
+              <div class="card-head"><h3><span class="head-bar"></span>快速操作</h3></div>
+              <div class="quick-btns">
+                <button class="qb qb-blue" id="q-check"><svg><use href="#i-play"/></svg>立即检测</button>
+                <button class="qb qb-green" id="q-refresh"><svg><use href="#i-refresh"/></svg>刷新状态</button>
+                <button class="qb qb-purple" id="q-logs"><svg><use href="#i-file"/></svg>查看日志</button>
+                <button class="qb qb-orange" id="q-settings"><svg><use href="#i-settings"/></svg>系统设置</button>
+              </div>
+            </div>
+
+            <div class="card quick-card" id="fan-quick" style="display:none">
+              <div class="card-head"><h3><span class="head-bar"></span>风扇控制</h3><span class="head-hint"><b id="fan-quick-temp" style="font-weight:700">—</b> ℃</span></div>
+              <div class="fan-quick-body">
+                <div class="fan-state-big"><span class="fan-dot" id="fan-quick-dot"></span><span id="fan-quick-state">—</span></div>
+                <div class="fan-quick-actions">
+                  <button class="qb qb-green" id="fan-quick-on"><svg><use href="#i-fan"/></svg>打开</button>
+                  <button class="qb qb-orange" id="fan-quick-off"><svg><use href="#i-fan"/></svg>关闭</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card detail-card">
+              <div class="card-head">
+                <h3><span class="head-bar blue"></span>监控详情</h3>
+                <div class="range-tabs" id="detail-range">
+                  <button data-r="1h">1小时</button><button data-r="1d" class="on">1天</button><button data-r="7d">7天</button><button data-r="30d">30天</button>
+                </div>
+              </div>
+              <div class="legend center"><span><i style="background:var(--blue)"></i>响应时间(ms)</span><span><i style="background:var(--green)"></i>可用性(%)</span></div>
+              <div class="chart-host" id="chart-detail"></div>
+              <div class="chart-note" id="detail-note"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- 网站管理：左侧分组卡片 / 右侧该组详情 ---------- -->
+      <section class="view hidden" id="view-sites">
+        <div class="sites-layout">
+          <div class="group-pane">
+            <div class="group-pane-head">
+              <h3><span class="head-bar"></span>网站分组</h3>
+              <span class="head-hint" id="group-total">0 组</span>
+            </div>
+            <div id="group-cards"></div>
+          </div>
+
+          <div class="card page-card sites-detail">
+            <div class="card-head">
+              <h3><span class="head-bar blue"></span><span id="sites-title">网站详情</span></h3>
+              <div class="list-tools">
+                <span class="drag-tip"><svg><use href="#i-grip"/></svg>拖动行首手柄可排序</span>
+                <button class="eye-btn" data-eye="1" title="切换网址显示"><svg><use href="#i-eye-off"/></svg><span>网址已隐藏</span></button>
+                <div class="search"><svg><use href="#i-search"/></svg><input id="search2" placeholder="搜索网站名称..." autocomplete="off"></div>
+                <button class="btn-add" id="btn-add-site"><svg><use href="#i-plus"/></svg>添加网站</button>
+              </div>
+            </div>
+            <div id="table-sites"></div>
+            <div class="table-foot"><span id="count-sites">共 0 条记录</span><div class="pager" id="pager-sites"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- 状态监控 ---------- -->
+      <section class="view hidden" id="view-monitor">
+        <div class="card page-card">
+          <div class="card-head"><h3><span class="head-bar"></span>状态趋势</h3><span class="head-hint" id="monitor-range-label">近7天</span></div>
+          <div class="legend"><span><i style="background:var(--green)"></i>在线</span><span><i style="background:var(--red)"></i>离线</span><span><i style="background:var(--blue)"></i>总计</span></div>
+          <div class="chart-host tall" id="chart-trend-big"></div>
+          <div class="chart-note" id="monitor-trend-note"></div>
+        </div>
+        <div class="card page-card" style="margin-top:16px">
+          <div class="card-head">
+            <h3><span class="head-bar blue"></span>监控详情</h3>
+            <div class="range-tabs" id="detail-range-2"><button data-r="1h">1小时</button><button data-r="1d" class="on">1天</button><button data-r="7d">7天</button><button data-r="30d">30天</button></div>
+          </div>
+          <div class="legend center"><span><i style="background:var(--blue)"></i>响应时间(ms)</span><span><i style="background:var(--green)"></i>可用性(%)</span></div>
+          <div class="chart-host tall" id="chart-detail-big"></div>
+          <div class="chart-note" id="monitor-detail-note"></div>
+        </div>
+      </section>
+
+      <!-- ---------- 服务器状态 ---------- -->
+      <section class="view hidden" id="view-system">
+        <div class="sys-layout">
+          <!-- 左：服务器小卡列表 -->
+          <aside class="sys-side">
+            <div class="sys-side-head">
+              <h3><span class="head-bar blue"></span>服务器 <span class="sys-count" id="sys-count"></span></h3>
+              <button class="btn-add" id="btn-srv-add"><svg><use href="#i-plus"/></svg>添加</button>
+            </div>
+            <div class="sys-side-list" id="sys-side-list"></div>
+            <div class="sys-side-foot"><button class="sys-refresh wide" id="sys-refresh"><svg><use href="#i-refresh"/></svg>刷新全部</button></div>
+          </aside>
+          <!-- 右：运行详情 -->
+          <div class="sys-detail-panel" id="sys-detail-panel">
+            <div class="sys-empty" id="sys-empty"><div class="sys-empty-icon"><svg><use href="#i-server"/></svg></div>从左侧选择一台服务器查看运行状态</div>
+            <div class="sys-detail-wrap hidden" id="sys-detail-wrap">
+              <div class="sys-detail-head">
+                <div class="sd-title"><span class="scard-dot" id="sd-dot"></span><h2 id="sd-name">—</h2><span class="sd-type" id="sd-type"></span></div>
+                <div class="sd-acts">
+                  <button class="scard-acts-btn" id="sd-edit" title="编辑"><svg><use href="#i-edit"/></svg></button>
+                  <button class="scard-acts-btn danger" id="sd-del" title="删除"><svg><use href="#i-x"/></svg></button>
+                </div>
+              </div>
+              <div class="sys-rings">
+                <div class="sys-ring-item">
+                  <div class="sys-ring" id="sys-ring-cpu"><div class="sys-ring-inner"><div class="sys-ring-val" id="sys-cpu-val">—</div><div class="sys-ring-label">CPU</div></div></div>
+                  <div class="sys-ring-sub" id="sys-cpu-sub">—</div>
+                </div>
+                <div class="sys-ring-item">
+                  <div class="sys-ring" id="sys-ring-mem"><div class="sys-ring-inner"><div class="sys-ring-val" id="sys-mem-val">—</div><div class="sys-ring-label">内存</div></div></div>
+                  <div class="sys-ring-sub" id="sys-mem-sub">—</div>
+                </div>
+                <div class="sys-ring-item">
+                  <div class="sys-ring" id="sys-ring-load"><div class="sys-ring-inner"><div class="sys-ring-val" id="sys-load-val">—</div><div class="sys-ring-label">负载</div></div></div>
+                  <div class="sys-ring-sub" id="sys-load-sub">—</div>
+                </div>
+                <div class="sys-ring-item">
+                  <div class="sys-ring" id="sys-ring-disk"><div class="sys-ring-inner"><div class="sys-ring-val" id="sys-disk-val">—</div><div class="sys-ring-label">磁盘</div></div></div>
+                  <div class="sys-ring-sub" id="sys-disk-sub">—</div>
+                </div>
+              </div>
+              <div class="sys-detail">
+                <div class="sys-detail-item"><span class="sys-detail-k">CPU 温度</span><span class="sys-detail-v" id="sys-temp">—</span></div>
+                <div class="sys-detail-item"><span class="sys-detail-k">系统运行时间</span><span class="sys-detail-v" id="sys-uptime">—</span></div>
+                <div class="sys-detail-item"><span class="sys-detail-k">CPU 核心数</span><span class="sys-detail-v" id="sys-cores">—</span></div>
+                <div class="sys-detail-item"><span class="sys-detail-k">负载 (1/5/15 分钟)</span><span class="sys-detail-v" id="sys-load-full">—</span></div>
+              </div>
+              <div class="sys-foot" id="sys-updated">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- 日志记录 ---------- -->
+      <section class="view hidden" id="view-logs">
+        <div class="card page-card">
+          <div class="card-head">
+            <h3><span class="head-bar"></span>日志记录</h3>
+            <button class="btn-add ghost" id="btn-clear-logs">清空日志</button>
+          </div>
+          <div id="log-host"></div>
+        </div>
+      </section>
+
+      <!-- ---------- 系统设置 ---------- -->
+      <section class="view hidden" id="view-settings">
+        <div class="card page-card settings-card">
+          <div class="card-head"><h3><span class="head-bar blue"></span>系统设置</h3></div>
+          <div class="settings-grid">
+            <div class="field"><label>自动检测间隔（秒）</label><input id="set-interval" type="number" min="5" max="3600" step="5"><div class="help">后端常驻检测，关掉浏览器页面也会继续采样。范围 5~3600 秒。</div></div>
+            <div class="field"><label>离线提示音</label><label class="switch-row"><input type="checkbox" id="set-alert"><span>状态从在线变为离线 / 异常时发出提示音</span></label></div>
+          </div>
+          <div class="settings-actions"><button class="btn-add" id="btn-save-settings">保存设置</button></div>
+          <div class="settings-meta" id="settings-meta"></div>
+        </div>
+
+        <div class="card page-card settings-card" style="margin-top:16px">
+          <div class="card-head"><h3><span class="head-bar blue"></span>远端同步</h3><span class="head-hint" id="sync-last">尚未同步</span></div>
+          <div class="settings-grid">
+            <div class="field"><label>远端地址</label><input id="set-sync-url" placeholder="http://your-server:7005" autocomplete="off"><div class="help">填对方那端的访问地址（公网端或另一份 exe）。两端都装了本程序即可互相同步。</div></div>
+            <div class="field"><label>远端账号</label><input id="set-sync-user" placeholder="admin" autocomplete="off"></div>
+            <div class="field"><label>远端密码</label><input id="set-sync-pass" type="password" placeholder="远端登录密码" autocomplete="off"><div class="help">仅保存在本机配置文件，用于程序后台登录远端，不会上传。</div></div>
+            <div class="field"><label>自动同步</label><label class="switch-row"><input type="checkbox" id="set-sync-auto"><span>开启后按下面间隔自动双向合并（按修改时间取较新一方）</span></label></div>
+            <div class="field"><label>自动同步间隔（分钟）</label><input id="set-sync-interval" type="number" min="5" max="1440" step="5"></div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn-add" id="btn-save-sync">保存同步设置</button>
+            <button class="btn-add ghost" id="btn-sync-both">双向合并同步</button>
+            <button class="btn-add ghost" id="btn-sync-pull">从公网拉取（覆盖本地）</button>
+            <button class="btn-add ghost" id="btn-sync-push">推送到公网（覆盖公网）</button>
+          </div>
+          <div class="help" style="margin-top:10px">两边都能改：本地与公网任意一端新增 / 修改 / 删除，都会在同步时按「修改时间」智能合并（同一网址谁改得新就用谁），新增网址自动互相同步。删除类冲突请用「从公网拉取 / 推送到公网」单独处理。</div>
+          <div class="sync-status" id="sync-status"></div>
+        </div>
+
+        <div class="card page-card settings-card" style="margin-top:16px">
+          <div class="card-head"><h3><span class="head-bar blue"></span>风扇控制</h3><span class="head-hint" id="fan-available">检测中…</span></div>
+          <div class="settings-grid">
+            <div class="field"><label>启用风扇控制</label><label class="switch-row"><input type="checkbox" id="fan-enabled"><span>开启后可在网页端开关树莓派散热风扇（GPIO 输出）</span></label></div>
+            <div class="field"><label>风扇 GPIO 引脚 (BCM 编号)</label><input id="fan-gpio" type="number" min="0" max="27" step="1" value="3"><div class="help">风扇接在物理引脚 4-6（4=5V、5=BCM3 控制、6=GND），BCM 编号填 3。接线务必确认，接错可能烧板。若「打开」后风扇反而停转，请勾选下方「低电平开启」。</div></div>
+            <div class="field"><label>低电平开启（反转逻辑）</label><label class="switch-row"><input type="checkbox" id="fan-inverted"><span>部分风扇模块用低电平驱动，勾选后「打开」= 输出低电平</span></label></div>
+          </div>
+          <div class="fan-live" id="fan-live" style="display:none">
+            <div class="fan-live-left">
+              <div class="fan-state-big"><span class="fan-dot" id="fan-dot"></span><span id="fan-state-text">—</span></div>
+              <div class="fan-temp">CPU 温度 <b id="fan-temp">—</b> ℃</div>
+            </div>
+            <div class="fan-live-actions">
+              <button class="btn-add" id="fan-on">打开风扇</button>
+              <button class="btn-add ghost" id="fan-off">关闭风扇</button>
+            </div>
+          </div>
+          <div class="settings-actions"><button class="btn-add" id="btn-save-fan">保存风扇设置</button></div>
+          <div class="fan-status" id="fan-status-msg"></div>
+        </div>
+
+        <div class="card page-card settings-card" style="margin-top:16px">
+          <div class="card-head"><h3><span class="head-bar blue"></span>数据备份</h3></div>
+          <div class="help">把当前网址清单、分组、系统设置、同步设置和风扇设置打包成一个 JSON 文件下载到本地，方便换机或重装时留存。文件含同步密码（明文），请妥善保管。</div>
+          <div class="settings-actions"><button class="btn-add" id="btn-export">导出 JSON 备份</button></div>
+          <div class="fan-status" id="export-status-msg"></div>
+        </div>
+      </section>
+
+      <!-- ---------- 关于我们 ---------- -->
+      <section class="view hidden" id="view-about">
+        <div class="card page-card about-card">
+          <div class="about-logo"><svg><use href="#i-cloud"/></svg></div>
+          <h2>在线状态管理</h2>
+          <p class="about-sub">Web监控 &amp; 管理 · 面板在线监测台</p>
+          <div class="about-list">
+            <div><span>版本</span><b id="about-version">2.0</b></div>
+            <div><span>检测方式</span><b>TCP 端口 + HTTP 请求（直连，绕过系统代理）</b></div>
+            <div><span>在线判定</span><b>HTTP 200 / 3xx / 401 / 403</b></div>
+            <div><span>监听地址</span><b id="about-port">127.0.0.1</b></div>
+            <div><span>配置文件</span><b id="about-config">—</b></div>
+            <div><span>已运行</span><b id="about-uptime">—</b></div>
+          </div>
+          <p class="about-tip">提示：点击「访问」是用浏览器打开面板，访问 192.168.x.x / 100.x.x.x 内网地址若报 502，请先关闭代理或加直连规则。</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= 弹窗 ================= -->
+<!-- 服务器管理弹窗（与网站无关，用户自定义命名） -->
+<div class="modal-mask hidden" id="srv-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="modal-x" data-close="srv-modal" aria-label="关闭" title="关闭"><svg><use href="#i-x"/></svg></button>
+      <h2 id="srv-modal-title">添加服务器</h2><p>用于「服务器状态」页读取整机资源</p>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sf-id">
+      <div class="field"><label>服务器名称 *</label><input id="sf-name" placeholder="例如：星云阿里云、家里NAS、公司服务器" maxlength="40"></div>
+      <div class="field"><label>采集方式</label><select id="sf-type"><option value="agent">Docker 采集器（推荐）</option><option value="1panel">1Panel API</option><option value="baota">宝塔 API</option></select><div class="help">Docker 采集器：目标机跑本项目 ysy-agent 目录的容器；1Panel/宝塔：用面板接口密钥。</div></div>
+      <div class="field"><label>API 地址 *</label><input id="sf-base" placeholder="例如：http://your-server:9100" autocomplete="off"><div class="help">采集器填 http://IP:9100；同机可填 http://ysy-agent:9100。面板 API 填面板访问地址。</div></div>
+      <div class="field"><label>接口密钥 / 令牌</label><input id="sf-key" type="password" placeholder="采集器 AGENT_TOKEN 或面板 API 密钥，没设可留空" autocomplete="off"></div>
+      <div class="fan-status" id="sf-status" style="display:none"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" id="btn-srv-delete" style="display:none;margin-right:auto">删除</button>
+      <button class="btn-cancel" data-close="srv-modal">取消</button>
+      <button class="btn-add" id="btn-srv-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask hidden" id="edit-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="modal-x" data-close="edit-modal" aria-label="关闭" title="关闭"><svg><use href="#i-x"/></svg></button>
+      <h2 id="edit-title">添加网站</h2><p>保存后立即检测一次</p>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-id">
+      <div class="field"><label>网站名称 *</label><input id="f-name" placeholder="例如：青龙面板"></div>
+      <div class="field"><label>网址 *</label><input id="f-url" placeholder="http://192.168.1.10:5700"><div class="help">不带 http:// 时默认按 http 处理，支持自签 HTTPS。</div></div>
+      <div class="row2">
+        <div class="field"><label>分组</label><input id="f-group" placeholder="例如：树莓派"></div>
+        <div class="field"><label>检测方式</label><select id="f-mode"><option value="http">HTTP 请求</option><option value="tcp">仅 TCP 端口</option></select></div>
+      </div>
+      <div class="field"><label>超时（秒）</label><input id="f-timeout" type="number" min="0.5" max="30" step="0.5" value="3"></div>
+      <div class="field"><label>备注</label><textarea id="f-note" placeholder="选填"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn-cancel" id="btn-edit-cancel">取消</button><button class="btn-add" id="btn-edit-save">保存并检测</button></div>
+  </div>
+</div>
+
+<div class="modal-mask hidden" id="detail-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="modal-x" data-close="detail-modal" aria-label="关闭" title="关闭"><svg><use href="#i-x"/></svg></button>
+      <h2 id="dm-title">网站详情</h2><p>最近一次检测结果</p>
+    </div>
+    <div class="modal-body" id="dm-body"></div>
+    <div class="modal-foot"><button class="btn-cancel" id="btn-dm-close">关闭</button><a class="btn-add" id="dm-visit" href="#" target="_blank" rel="noopener noreferrer">访问面板</a></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="/app.js"></script>
+</body>
+</html>

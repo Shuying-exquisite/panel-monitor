@@ -1,0 +1,27 @@
+services:
+  panel-monitor:
+    build: .
+    image: local/panel-monitor:latest
+    container_name: panel-monitor
+    restart: always
+    ports:
+      - "8765:8765"
+    volumes:
+      - ./data:/data
+      # 前端与后端挂卷：改代码后只需替换文件并重启容器，无需重建镜像
+      - ./web:/app/web:ro
+      - ./panel_monitor.py:/app/panel_monitor.py:ro
+    environment:
+      - TZ=Asia/Shanghai
+
+# 若需要树莓派 GPIO 风扇控制，取消下面 devices 注释（仅 Raspberry Pi 有 /dev/gpiochip0）：
+#    devices:
+#      - /dev/gpiochip0:/dev/gpiochip0
+
+# 若采集器 ysy-agent 装在同一台机器并想用 http://ysy-agent:9100 互访，
+# 先执行 docker network create monitor-net，然后取消下面注释：
+#    networks:
+#      - monitor-net
+# networks:
+#   monitor-net:
+#     external: true
