@@ -397,8 +397,21 @@ tbody tr.drop-after td { box-shadow: inset 0 -2px 0 var(--blue); }
 .fan-quick-body { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .fan-quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; max-width: 210px; }
 
-/* ---------- 服务器运行状态（左列表 + 右详情） ---------- */
-.sys-layout { display: grid; grid-template-columns: 290px 1fr; gap: 16px; align-items: start; }
+/* ---------- 服务器运行状态（分组 + 服务器 + 详情 三栏） ---------- */
+.sys-layout { display: grid; grid-template-columns: 170px 260px 1fr; gap: 14px; align-items: start; }
+.sys-groups { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.sys-group-item { display: block; box-sizing: border-box; width: 100%; text-align: left; padding: 11px 12px; margin: 8px 8px 0; border: 1px solid var(--line); border-radius: 9px; background: #fff; cursor: pointer; transition: .15s; }
+.sys-group-item:last-child { margin-bottom: 8px; }
+.sys-group-item:hover { border-color: #bcd4f5; background: #fafcff; }
+.sys-group-item.active { border-color: var(--blue); background: #f2f7ff; }
+.sg-top { display: flex; align-items: center; gap: 7px; }
+.sg-folder { color: var(--blue); display: inline-flex; }
+.sg-folder svg { width: 14px; height: 14px; }
+.sg-name { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-count { background: #f0f4fb; color: #7b8aa4; border-radius: 10px; padding: 1px 7px; font-size: 10.5px; font-weight: 600; }
+.sg-status { display: flex; gap: 10px; margin-top: 7px; padding-left: 21px; font-size: 10.5px; color: var(--muted); }
+.sg-on b { color: var(--green); font-weight: 600; }
+.sg-off b { color: #d23b3b; font-weight: 600; }
 .sys-side { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .sys-side-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 15px 16px; border-bottom: 1px solid var(--line); }
 .sys-side-head h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; font-weight: 600; color: var(--text); }
@@ -450,11 +463,11 @@ tbody tr.drop-after td { box-shadow: inset 0 -2px 0 var(--blue); }
 .sys-detail-k { font-size: 12px; color: var(--muted); }
 .sys-detail-v { font-size: 14px; font-weight: 500; color: #4a5872; font-variant-numeric: tabular-nums; }
 .sys-foot { text-align: center; font-size: 12px; color: #aab4c6; padding: 16px; }
-@media (max-width: 1100px) {
-  .sys-layout { grid-template-columns: 240px 1fr; }
+@media (max-width: 1240px) {
+  .sys-layout { grid-template-columns: 140px 220px 1fr; gap: 10px; }
   .sys-rings { grid-template-columns: repeat(2, 1fr); }
   .sys-detail { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .sys-layout { grid-template-columns: 1fr; }
 }

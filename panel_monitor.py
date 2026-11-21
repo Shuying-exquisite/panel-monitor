@@ -621,6 +621,7 @@ def normalize_status_server(data: dict) -> dict | None:
     return {
         "id": str(data.get("id") or "").strip() or uuid.uuid4().hex[:8],
         "name": name,
+        "group": str(data.get("group") or "").strip()[:30] or "默认分组",
         "type": ptype,
         "base": base,
         "key": str(data.get("key") or "").strip(),
@@ -662,13 +663,21 @@ def delete_status_server(sid: str) -> bool:
 
 
 def reorder_status_servers(ids: list) -> bool:
-    """按前端拖拽结果重排运行状态服务器顺序，并写入配置文件。"""
+    """按前端拖拽结果重排运行状态服务器顺序，并写入配置文件。
+    支持部分排序：ids 只包含被拖动那一组的成员，其余成员保持原有相对位置。"""
     with LOCK:
         items = CONFIG.get("status_servers", [])
         by_id = {s.get("id"): s for s in items}
-        if not ids or len(ids) != len(items) or set(ids) != set(by_id):
+        if not ids or any(i not in by_id for i in ids) or len(set(ids)) != len(ids):
             return False
-        CONFIG["status_servers"] = [by_id[i] for i in ids]
+        # 找到 ids 中成员在原列表里占据的槽位，按新顺序回填；其它成员原地不动
+        slots = [i for i, s in enumerate(items) if s.get("id") in set(ids)]
+        if len(slots) != len(ids):
+            return False
+        new_items = list(items)
+        for slot, sid in zip(slots, ids):
+            new_items[slot] = by_id[sid]
+        CONFIG["status_servers"] = new_items
         save_config()
     return True
 
@@ -1413,22 +1422,23 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/panel/list":
                 # 返回独立运行状态服务器列表（不含密钥）
                 with LOCK:
-                    items = [{"id": s.get("id"), "name": s.get("name"), "type": s.get("type"),
-                              "base": s.get("base", "")}
+                    items = [{"id": s.get("id"), "name": s.get("name"), "group": s.get("group") or "默认分组",
+                              "type": s.get("type"), "base": s.get("base", "")}
                              for s in CONFIG.get("status_servers", [])]
                 self._json({"ok": True, "servers": items})
                 return
             if path == "/api/export":
-                # 完整配置备份：网址清单 + 分组 + 系统设置 + 同步设置（含密码，便于换机恢复） + 风扇设置
+                # 完整配置备份：网址清单 + 分组 + 服务器状态列表（含采集器地址/令牌） + 系统设置 + 同步设置 + 风扇设置
                 with LOCK:
                     backup = {
                         "app": "面板在线监测台",
                         "version": VERSION,
                         "exported_at": now_full(),
-                        "notice": "敏感文件：sync.password 为明文，请妥善保管，勿随意分享。",
+                        "notice": "敏感文件：sync.password 与 status_servers[].key 为明文，请妥善保管，勿随意分享。",
                         "interval": CONFIG.get("interval", 30),
                         "alert_sound": CONFIG.get("alert_sound", True),
                         "servers": clone(CONFIG.get("servers", [])),
+                        "status_servers": clone(CONFIG.get("status_servers", [])),
                         "sync": clone(CONFIG.get("sync") or {}),
                         "fan": clone(CONFIG.get("fan") or {"enabled": False, "gpio": 3, "inverted": False}),
                     }
@@ -1519,6 +1529,41 @@ class Handler(BaseHTTPRequestHandler):
                 save_config()
             add_event("info", f"通过同步覆盖了服务器列表，共 {len(servers)} 个")
             self._json({"ok": True, "count": len(servers)})
+        elif path == "/api/import":
+            # 从 JSON 备份恢复：网址清单 + 服务器状态列表 + 系统设置 + 同步设置 + 风扇设置
+            backup = data.get("backup") if isinstance(data.get("backup"), dict) else data
+            if not isinstance(backup, dict) or (not isinstance(backup.get("servers"), list) and not isinstance(backup.get("status_servers"), list)):
+                self._json({"ok": False, "error": "备份格式无效"}, 400)
+                return
+            servers = [normalize_server(s) for s in backup.get("servers", []) if isinstance(s, dict)] if isinstance(backup.get("servers"), list) else None
+            status_servers = [normalize_status_server(s) for s in backup.get("status_servers", []) if isinstance(s, dict)] if isinstance(backup.get("status_servers"), list) else None
+            status_servers = [s for s in status_servers if s] if status_servers is not None else None
+            with LOCK:
+                if servers is not None:
+                    CONFIG["servers"] = servers
+                    for sid in list(RESULTS.keys()):
+                        if not any(s.get("id") == sid for s in servers):
+                            RESULTS.pop(sid, None)
+                            STATE_SINCE.pop(sid, None)
+                if status_servers is not None:
+                    CONFIG["status_servers"] = status_servers
+                    for s in status_servers:
+                        _PANEL_CACHE.pop(s.get("id"), None)
+                try:
+                    CONFIG["interval"] = max(5, min(int(backup.get("interval") or 30), 3600))
+                except (TypeError, ValueError):
+                    pass
+                if "alert_sound" in backup:
+                    CONFIG["alert_sound"] = bool(backup["alert_sound"])
+                if isinstance(backup.get("sync"), dict):
+                    CONFIG["sync"] = backup["sync"]
+                if isinstance(backup.get("fan"), dict):
+                    CONFIG["fan"] = backup["fan"]
+                save_config()
+            add_event("info", f"导入备份：网址 {len(servers) if servers is not None else '—'} 个，服务器状态 {len(status_servers) if status_servers is not None else '—'} 台")
+            self._json({"ok": True,
+                        "servers": len(servers) if servers is not None else None,
+                        "status_servers": len(status_servers) if status_servers is not None else None})
         elif path == "/api/sync/config":
             with LOCK:
                 sc = CONFIG.setdefault("sync", {})

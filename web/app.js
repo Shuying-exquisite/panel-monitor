@@ -463,16 +463,96 @@
   let statusServers = [];   // 独立运行状态服务器（与网站无关）
   let statusCache = {};     // id -> 最近一次状态
   let selectedSrvId = null; // 当前选中的服务器
+  let selectedSrvGroup = null; // 当前选中的分组
 
-  // 只在服务器增删改时重建左侧小卡列表（避免闪烁）
+  // 按分组名顺序提取分组（保持服务器出现顺序）
+  function srvGroups() {
+    const seen = [];
+    statusServers.forEach((s) => {
+      const g = s.group || '默认分组';
+      if (!seen.includes(g)) seen.push(g);
+    });
+    return seen;
+  }
+  function inCurrentGroup() {
+    return statusServers.filter((s) => (s.group || '默认分组') === selectedSrvGroup);
+  }
+
+  // 渲染分组栏（只在服务器分组变化时重建）
+  function renderGroupList() {
+    const box = $('sys-group-list');
+    if (!box) return;
+    const groups = srvGroups();
+    if (!groups.length) {
+      box.innerHTML = '<div class="sys-side-empty" style="padding:30px 8px">暂无分组</div>';
+      if ($('sys-group-total')) $('sys-group-total').textContent = '0 组';
+      return;
+    }
+    if (!groups.includes(selectedSrvGroup)) selectedSrvGroup = groups[0];
+    box.innerHTML = groups.map((g) => {
+      const n = statusServers.filter((s) => (s.group || '默认分组') === g).length;
+      return `<button class="sys-group-item${g === selectedSrvGroup ? ' active' : ''}" data-group="${esc(g)}">
+        <span class="sg-top"><span class="sg-folder">${icon('folder')}</span><span class="sg-name">${esc(g)}</span><span class="sg-count">${n}</span></span>
+        <span class="sg-status" data-role="gstatus"><span class="sg-on">在线 <b>0</b></span><span class="sg-off">离线 <b>0</b></span></span>
+      </button>`;
+    }).join('');
+    if ($('sys-group-total')) $('sys-group-total').textContent = groups.length + ' 组';
+    if ($('sys-list-title')) $('sys-list-title').textContent = selectedSrvGroup;
+    // 同步弹窗分组候选
+    const dl = $('sf-group-list');
+    if (dl) dl.innerHTML = groups.map((g) => `<option value="${esc(g)}"></option>`).join('');
+    updateGroupStatus();
+  }
+
+  // 刷新时只更新各分组的在线/离线数字（不重建分组栏 → 无闪烁）
+  function updateGroupStatus() {
+    document.querySelectorAll('.sys-group-item').forEach((card) => {
+      const g = card.getAttribute('data-group');
+      let online = 0, offline = 0;
+      statusServers.forEach((s) => {
+        if ((s.group || '默认分组') !== g) return;
+        const st = statusCache[s.id];
+        if (st && st.ok !== false) online++; else offline++;
+      });
+      const onEl = card.querySelector('.sg-on b');
+      const offEl = card.querySelector('.sg-off b');
+      if (onEl) onEl.textContent = online;
+      if (offEl) offEl.textContent = offline;
+    });
+  }
+
+  // 中栏标题的数量 = 当前分组的服务器台数
+  function updateListCount() {
+    const n = inCurrentGroup().length;
+    if ($('sys-count')) $('sys-count').textContent = n ? `共 ${n} 台` : '';
+  }
+
+  // 切换分组：重建中间服务器列表，选中该组第一台
+  function selectGroup(name) {
+    selectedSrvGroup = name;
+    document.querySelectorAll('.sys-group-item').forEach((el) => el.classList.toggle('active', el.getAttribute('data-group') === name));
+    if ($('sys-list-title')) $('sys-list-title').textContent = name;
+    updateListCount();
+    renderSideList();
+    const groupServers = inCurrentGroup();
+    selectedSrvId = groupServers.length ? groupServers[0].id : null;
+    if (selectedSrvId) selectServer(selectedSrvId);
+    else {
+      if ($('sys-empty')) $('sys-empty').classList.remove('hidden');
+      if ($('sys-detail-wrap')) $('sys-detail-wrap').classList.add('hidden');
+    }
+  }
+
+  // 只在服务器增删改/换组时重建中间小卡列表（避免闪烁）
   function renderSideList() {
     const box = $('sys-side-list');
     if (!box) return;
-    if (!statusServers.length) {
-      box.innerHTML = '<div class="sys-side-empty">暂无服务器，点上方「添加」</div>';
+    const list = inCurrentGroup();
+    if (!list.length) {
+      box.innerHTML = '<div class="sys-side-empty">该分组暂无服务器，点上方「添加」</div>';
       return;
     }
-    box.innerHTML = statusServers.map((s) => `
+    box.innerHTML = list.map((s) => `
       <div class="side-card" data-id="${esc(s.id)}" draggable="false">
         <div class="sc-top"><span class="drag-handle sc-grip" title="按住拖动排序">${icon('grip')}</span><span class="scard-dot off" data-role="dot"></span><span class="sc-name">${esc(s.name)}</span></div>
         <div class="sc-stats"><span>CPU <b data-role="cpu">—</b></span><span>内存 <b data-role="mem">—</b></span></div>
@@ -550,15 +630,17 @@
     try {
       const j = await api('/api/panel/list');
       const next = (j && j.servers) || [];
-      // 列表/名称变化时重建左侧（比较 id+name+type）
+      // 列表/名称/分组变化时重建（比较 id+name+type+group）
       // 注意：不可排序——顺序本身是签名的一部分，否则拖拽换序后检测不到变化
-      const sigOf = (arr) => arr.map((s) => `${s.id}|${s.name}|${s.type}`).join(',');
+      const sigOf = (arr) => arr.map((s) => `${s.id}|${s.name}|${s.type}|${s.group || ''}`).join(',');
       if (sigOf(next) !== sigOf(statusServers)) {
         statusServers = next;
+        renderGroupList();
         renderSideList();
-        // 选中项失效则默认第一台
-        if (!statusServers.some((s) => s.id === selectedSrvId)) {
-          selectedSrvId = statusServers.length ? statusServers[0].id : null;
+        // 选中项失效则默认当前组第一台
+        if (!inCurrentGroup().some((s) => s.id === selectedSrvId)) {
+          const groupServers = inCurrentGroup();
+          selectedSrvId = groupServers.length ? groupServers[0].id : null;
         }
         if (!selectedSrvId) {
           if ($('sys-empty')) $('sys-empty').classList.remove('hidden');
@@ -570,7 +652,7 @@
     } catch (e) {
       statusServers = [];
     }
-    if ($('sys-count')) $('sys-count').textContent = statusServers.length ? `共 ${statusServers.length} 台` : '';
+    updateListCount();
     // 并行拉所有状态存入缓存
     await Promise.all(statusServers.map(async (srv) => {
       try {
@@ -582,6 +664,7 @@
       }
     }));
     updateSideList();
+    updateGroupStatus();   // 各分组在线/离线数字
     if (selectedSrvId) selectServer(selectedSrvId);   // 仅更新文本/圆环，无重建闪烁
     if (manual && btn) setTimeout(() => btn.classList.remove('spin'), 400);
   }
@@ -1070,7 +1153,12 @@
 
   if ($('sys-refresh')) $('sys-refresh').addEventListener('click', () => loadAllSystem(true));
 
-  // 左侧服务器小卡点击 → 选中并显示详情
+  // 分组栏点击 → 切换分组，显示该组服务器
+  if ($('sys-group-list')) $('sys-group-list').addEventListener('click', (e) => {
+    const item = e.target.closest('.sys-group-item');
+    if (item) selectGroup(item.getAttribute('data-group'));
+  });
+  // 中间服务器小卡点击 → 选中并显示详情
   if ($('sys-side-list')) $('sys-side-list').addEventListener('click', (e) => {
     const card = e.target.closest('.side-card');
     if (card) selectServer(card.getAttribute('data-id'));
@@ -1102,6 +1190,7 @@
   function openServerModal(srv) {
     $('sf-id').value = srv ? srv.id : '';
     $('sf-name').value = srv ? (srv.name || '') : '';
+    $('sf-group').value = srv ? (srv.group || '默认分组') : (selectedSrvGroup || '');
     $('sf-type').value = srv ? (srv.type || 'agent') : 'agent';
     $('sf-base').value = srv ? (srv.base || '') : '';
     $('sf-key').value = '';   // 密钥不回显；编辑时留空保持原值需后端支持，这里保存时带回
@@ -1114,13 +1203,14 @@
   if ($('btn-srv-add')) $('btn-srv-add').addEventListener('click', () => openServerModal(null));
   if ($('btn-srv-save')) $('btn-srv-save').addEventListener('click', async () => {
     const name = $('sf-name').value.trim();
+    const group = $('sf-group').value.trim();
     const base = $('sf-base').value.trim();
     const type = $('sf-type').value;
     const key = $('sf-key').value.trim();
     if (!name) { srvMsg('请填写服务器名称', false); return; }
     if (!base) { srvMsg('请填写 API 地址', false); return; }
     const id = $('sf-id').value;
-    const payload = { name, base, type, key };
+    const payload = { name, group, base, type, key };
     if (id) payload.id = id;
     // 编辑时密钥留空，后端会保留原值
     try {
@@ -1128,6 +1218,8 @@
       if (!res.ok) { srvMsg('保存失败：' + (res.error || '未知错误'), false); return; }
       $('srv-modal').classList.add('hidden');
       toast(id ? '服务器已更新' : '服务器已添加');
+      selectedSrvGroup = group || '默认分组';
+      selectedSrvId = (res.server && res.server.id) || id || null;
       loadAllSystem(true);
     } catch (e) { srvMsg('保存失败：' + e.message, false); }
   });
@@ -1173,6 +1265,42 @@
       if (msg) { msg.textContent = '导出失败：' + e.message; msg.className = 'fan-status bad'; }
     }
   });
+
+  // ------------------------------------------------------------ 导入 JSON 备份并恢复
+  if ($('btn-import') && $('import-file')) {
+    $('btn-import').addEventListener('click', () => $('import-file').click());
+    $('import-file').addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';   // 允许重复选同一文件
+      if (!file) return;
+      const msg = $('export-status-msg');
+      let backup;
+      try {
+        backup = JSON.parse(await file.text());
+      } catch (err) {
+        if (msg) { msg.textContent = '导入失败：不是有效的 JSON 文件'; msg.className = 'fan-status bad'; }
+        return;
+      }
+      const nSites = Array.isArray(backup.servers) ? backup.servers.length : 0;
+      const nSrv = Array.isArray(backup.status_servers) ? backup.status_servers.length : 0;
+      if (!nSites && !nSrv) {
+        if (msg) { msg.textContent = '导入失败：备份里没有网址或服务器状态数据'; msg.className = 'fan-status bad'; }
+        return;
+      }
+      if (!confirm(`确定用该备份恢复配置吗？\n网址 ${nSites} 条、服务器状态 ${nSrv} 台。\n将覆盖当前的网址清单和服务器状态列表。`)) return;
+      if (msg) { msg.textContent = '正在恢复…'; msg.className = 'fan-status'; }
+      try {
+        const res = await api('/api/import', { backup });
+        if (!res.ok) throw new Error(res.error || '恢复失败');
+        if (msg) { msg.textContent = `恢复成功：网址 ${res.servers != null ? res.servers : '未变'} 条，服务器状态 ${res.status_servers != null ? res.status_servers : '未变'} 台`; msg.className = 'fan-status ok'; }
+        toast('备份已恢复');
+        await load(true);   // 刷新网址数据
+        loadAllSystem(true); // 刷新服务器状态数据
+      } catch (err) {
+        if (msg) { msg.textContent = '恢复失败：' + err.message; msg.className = 'fan-status bad'; }
+      }
+    });
+  }
 
   // ------------------------------------------------------------ 启动
   (async function init() {

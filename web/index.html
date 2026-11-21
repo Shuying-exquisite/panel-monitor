@@ -217,10 +217,18 @@
       <!-- ---------- 服务器状态 ---------- -->
       <section class="view hidden" id="view-system">
         <div class="sys-layout">
-          <!-- 左：服务器小卡列表 -->
+          <!-- 左1：分组 -->
+          <aside class="sys-groups">
+            <div class="sys-side-head">
+              <h3><span class="head-bar"></span>服务器分组</h3>
+              <span class="head-hint" id="sys-group-total">0 组</span>
+            </div>
+            <div id="sys-group-list"></div>
+          </aside>
+          <!-- 左2：该分组的服务器小卡列表 -->
           <aside class="sys-side">
             <div class="sys-side-head">
-              <h3><span class="head-bar blue"></span>服务器 <span class="sys-count" id="sys-count"></span></h3>
+              <h3><span class="head-bar blue"></span><span id="sys-list-title">服务器</span> <span class="sys-count" id="sys-count"></span></h3>
               <button class="btn-add" id="btn-srv-add"><svg><use href="#i-plus"/></svg>添加</button>
             </div>
             <div class="sys-side-list" id="sys-side-list"></div>
@@ -332,8 +340,12 @@
 
         <div class="card page-card settings-card" style="margin-top:16px">
           <div class="card-head"><h3><span class="head-bar blue"></span>数据备份</h3></div>
-          <div class="help">把当前网址清单、分组、系统设置、同步设置和风扇设置打包成一个 JSON 文件下载到本地，方便换机或重装时留存。文件含同步密码（明文），请妥善保管。</div>
-          <div class="settings-actions"><button class="btn-add" id="btn-export">导出 JSON 备份</button></div>
+          <div class="help">把当前网址清单、分组、<b>服务器状态列表（含采集器地址与令牌）</b>、系统设置、同步设置和风扇设置打包成一个 JSON 文件下载，方便换机或重装时恢复。导入会用备份内容覆盖对应配置。文件含明文密码/令牌，请妥善保管。</div>
+          <div class="settings-actions">
+            <button class="btn-add" id="btn-export">导出 JSON 备份</button>
+            <button class="btn-add ghost" id="btn-import">导入并恢复</button>
+            <input type="file" id="import-file" accept="application/json,.json" style="display:none">
+          </div>
           <div class="fan-status" id="export-status-msg"></div>
         </div>
       </section>
@@ -371,6 +383,7 @@
     <div class="modal-body">
       <input type="hidden" id="sf-id">
       <div class="field"><label>服务器名称 *</label><input id="sf-name" placeholder="例如：星云阿里云、家里NAS、公司服务器" maxlength="40"></div>
+      <div class="field"><label>所属分组</label><input id="sf-group" list="sf-group-list" placeholder="例如：生产环境（留空为「默认分组」）" maxlength="30"><datalist id="sf-group-list"></datalist><div class="help">同一分组的服务器会归到左侧同一组下；可输入新分组名。</div></div>
       <div class="field"><label>采集方式</label><select id="sf-type"><option value="agent">Docker 采集器（推荐）</option><option value="1panel">1Panel API</option><option value="baota">宝塔 API</option></select><div class="help">Docker 采集器：目标机跑本项目 ysy-agent 目录的容器；1Panel/宝塔：用面板接口密钥。</div></div>
       <div class="field"><label>API 地址 *</label><input id="sf-base" placeholder="例如：http://your-server:9100" autocomplete="off"><div class="help">采集器填 http://IP:9100；同机可填 http://ysy-agent:9100。面板 API 填面板访问地址。</div></div>
       <div class="field"><label>接口密钥 / 令牌</label><input id="sf-key" type="password" placeholder="采集器 AGENT_TOKEN 或面板 API 密钥，没设可留空" autocomplete="off"></div>
